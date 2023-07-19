@@ -49,7 +49,31 @@ The following GoFR assembly (the internal translation of Go moves) loads a
 constant 1 (via the `Identity` opcode `1`) into R1, loads an `Increment` operation
 (opcode `2`) into R2 with an argument of `1`. This argument points to R1, indicating
 that after execution, R2 should contain a constant value of the increment of 1, 
-which is 2. This code example is also represented by this game of Go: ![assembly example gif](media/demo.gif)
+which is 2. This code example is also represented by both of these games of Go: 
+<details>
+    <summary>Game Animations</summary>
+
+| Step in ASM | Move in Game |
+|---|---|
+| 1 | 7 |
+| 2 | 17 |
+| 3 | 19 | 
+| 4 | 24 |
+| 5 | 25 |
+
+![assembly example gif](media/asm_demo/demo-1.gif)
+
+| Step in ASM | Move in Game |
+|---|---|
+| 1 | 3 |
+| 2 | 12 |
+| 3 | 13 | 
+| 4 | 17 |
+| 5 | 19 |
+
+![assembly example gif](media/asm_demo/demo-2.gif)
+
+</details>
 
 0. Initial Bank
     ```
