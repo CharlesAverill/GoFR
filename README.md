@@ -46,10 +46,10 @@ The above description provides a high-level overview of GoFR's semantics based o
 ### Assembly Example
 
 The following GoFR assembly (the internal translation of Go moves) loads a 
-constant 0 (via the `Identity` opcode `0`) into R0, loads an `Increment` operation
-(opcode `1`) into R1 with an argument of `0`. This argument points to R0, indicating
-that after execution, R1 should contain a constant value of the increment of 0, 
-which is 1.
+constant 1 (via the `Identity` opcode `1`) into R1, loads an `Increment` operation
+(opcode `2`) into R2 with an argument of `1`. This argument points to R1, indicating
+that after execution, R2 should contain a constant value of the increment of 1, 
+which is 2. This code example is also represented by this game of Go: ![assembly example gif](media/demo.gif)
 
 0. Initial Bank
     ```
@@ -57,49 +57,47 @@ which is 1.
     | Empty | <- R
     ---------
     ```
-1.  Load 'Identity' opcode (N_Args is filled automatically for builtins)
+1. [Move 7] Load 'Identity' opcode (N_Args is filled automatically for builtins)
     ```
     -----------------------
-    | R0 | Identity | N=1 | <- R
+    | R1 | Identity | N=1 | <- R
     -----------------------
     ```
-2. : Load the constant '0' into the first argument of R0
+2. [Move 17] Load the constant '1' into the first argument of R1
     ```
     ---------------------------
-    | R0 | Identity | N=1 | 0 | <- R
+    | R1 | Identity | N=1 | 1 | <- R
     ---------------------------
     ```
-3. : Increment R
+3. [Move 19] Increment R
     ```
     ---------------------------
-    | R0 | Identity | N=1 | 0 |
+    | R1 | Identity | N=1 | 1 |
     ---------
     | Empty | <- R
     ---------
     ```
-4. : Load 'Increment' opcode
+4. [Move 24] Load 'Increment' opcode
     ```
     ---------------------------
-    | R0 | Identity | N=1 | 0 |
+    | R1 | Identity | N=1 | 0 |
     ------------------------
-    | R1 | Increment | N=1 | <- R
+    | R2 | Increment | N=1 | <- R
     ------------------------
     ```
-5. : Load the register pointer '0' into the first argument of R1
+5. [Move 25] Load the register pointer '1' into the first argument of R2
     ```
     ---------------------------
-    | R0 | Identity | N=1 | 0 |
+    | R1 | Identity | N=1 | 1 |
     ----------------------------
-    | R1 | Increment | N=1 | 0 | <- R
+    | R2 | Increment | N=1 | 1 | <- R
     ----------------------------
     ```
-6. : When a function is supplied with the correct number of arguments,
-it is executed automatically. Here, R1 has been set to a constant value of
-0 + 1 = 1
+6. When a function is supplied with the correct number of arguments, it is executed automatically. Here, R1 has been set to a constant value of 1 + 1 = 2
     ```
     ---------------------------
-    | R0 | Identity | N=1 | 0 |
+    | R1 | Identity | N=1 | 1 |
     ---------------------------
-    | R1 | Identity | N=1 | 1 | <- R
+    | R2 | Identity | N=1 | 2 | <- R
     ---------------------------
     ```
