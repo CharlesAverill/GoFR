@@ -1,5 +1,7 @@
 # GoFR
 
+![GoFR Logo](media/gofr_logo.png)
+
 GoFR ("Go [language] For Real", pronounced "gopher") is a register-based programming language whose semantics are based on moves made in the board game [Go](https://en.wikipedia.org/wiki/Go_(game)).
 
 ## Semantics
@@ -31,7 +33,7 @@ GoFR incorporates elements from the traditional East Asian board game Go to defi
 
 GoFR incorporates rules inspired by the game of Go to govern its execution and manipulation of registers:
 
-- If Black makes a **Ko capture** (a capture of one register that could be reversed in one move), the current register pointer (`R`) is incremented.
+- If Black makes a **Ko capture** (a capture of one board space that could be reversed in one move), the current register pointer (`R`) is incremented.
 - If White makes a Ko capture, `R` is decremented.
 - If either color **passes**, the register at position `R` is cleared back to an uninitialized state.
 - If `N` tiles are captured by either color, and the register at position `R` has no function opcode loaded, then its opcode is set to `N`. Otherwise, if it does not have `N_Args` filled (builtins fill this automatically), `N_Args` is set to `N`. Otherwise, `N` is loaded as a pointer to register `#N` into the next available argument slot for register `R`.
