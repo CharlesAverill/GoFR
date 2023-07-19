@@ -1,8 +1,4 @@
 (executable
  (public_name gofr)
- (name main))
-
-(env
- (dev
-  (flags
-   (:standard -warn-error -A))))
+ (name main)
+ (libraries board operation register))

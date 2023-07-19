@@ -1,4 +1,4 @@
-open Board
+open Board_definitions
 
 let print_space = function
   | Some Black -> print_char '@'

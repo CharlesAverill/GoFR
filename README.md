@@ -42,3 +42,64 @@ GoFR incorporates rules inspired by the game of Go to govern its execution and m
 These Go-inspired rules add a unique aspect to GoFR's execution and provide a gameplay-like experience to programming.
 
 The above description provides a high-level overview of GoFR's semantics based on the game of Go. More detailed information about the language's syntax, built-in functions, and additional features will be released over time as the language is developed.
+
+### Assembly Example
+
+The following GoFR assembly (the internal translation of Go moves) loads a 
+constant 0 (via the `Identity` opcode `0`) into R0, loads an `Increment` operation
+(opcode `1`) into R1 with an argument of `0`. This argument points to R0, indicating
+that after execution, R1 should contain a constant value of the increment of 0, 
+which is 1.
+
+0. Initial Bank
+    ```
+    ---------
+    | Empty | <- R
+    ---------
+    ```
+1.  Load 'Identity' opcode (N_Args is filled automatically for builtins)
+    ```
+    -----------------------
+    | R0 | Identity | N=1 | <- R
+    -----------------------
+    ```
+2. : Load the constant '0' into the first argument of R0
+    ```
+    ---------------------------
+    | R0 | Identity | N=1 | 0 | <- R
+    ---------------------------
+    ```
+3. : Increment R
+    ```
+    ---------------------------
+    | R0 | Identity | N=1 | 0 |
+    ---------
+    | Empty | <- R
+    ---------
+    ```
+4. : Load 'Increment' opcode
+    ```
+    ---------------------------
+    | R0 | Identity | N=1 | 0 |
+    ------------------------
+    | R1 | Increment | N=1 | <- R
+    ------------------------
+    ```
+5. : Load the register pointer '0' into the first argument of R1
+    ```
+    ---------------------------
+    | R0 | Identity | N=1 | 0 |
+    ----------------------------
+    | R1 | Increment | N=1 | 0 | <- R
+    ----------------------------
+    ```
+6. : When a function is supplied with the correct number of arguments,
+it is executed automatically. Here, R1 has been set to a constant value of
+0 + 1 = 1
+    ```
+    ---------------------------
+    | R0 | Identity | N=1 | 0 |
+    ---------------------------
+    | R1 | Identity | N=1 | 1 | <- R
+    ---------------------------
+    ```

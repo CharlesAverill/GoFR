@@ -1,0 +1,4 @@
+(library
+ (name board)
+ (public_name gofr.board)
+ (modules board_printing board_definitions))

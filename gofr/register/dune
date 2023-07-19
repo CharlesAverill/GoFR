@@ -1,0 +1,5 @@
+(library
+ (name register)
+ (public_name gofr.register)
+ (modules register_definitions register_printing operation_execution)
+ (libraries gofr.operation))

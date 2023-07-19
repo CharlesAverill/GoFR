@@ -1,0 +1,4 @@
+(library
+ (name operation)
+ (public_name gofr.operation)
+ (modules operation_definitions))
