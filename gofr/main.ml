@@ -3,8 +3,10 @@
 open Register.Register_definitions
 open Register.Register_printing
 open Register.Operation_execution
+open Board.Board_graphics
 
 let _ = print_newline ()
+let _ = xdim
 
 (* let _ =
    print_board

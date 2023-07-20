@@ -1,0 +1,5 @@
+(library
+ (name textures)
+ (public_name gofr.board.textures)
+ (modules textures gameboard_720 black_piece_40px white_piece_40px)
+ (libraries graphics))
