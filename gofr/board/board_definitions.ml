@@ -1,3 +1,6 @@
+open Register.Operation_execution
+open Register.Register_definitions
+
 type space = Nil | Black | White
 type position = int * int
 type fboard = int * (position -> space)
@@ -64,6 +67,9 @@ let check_for_capture x y board friendly_color : bool =
   all_neighbors_are_opponents
   || not (has_group_liberty [] x y board friendly_color)
 
+let global_register_bank = ref (ref fresh_bank)
+let list_rbank (bank : reg_bank ref) = global_register_bank := bank
+
 let rec place x y (value : space) (board : fboard) : fboard option * int =
   if (get_board board) (x, y) <> Nil && value <> Nil then (None, 0)
   else
@@ -110,6 +116,11 @@ let rec place x y (value : space) (board : fboard) : fboard option * int =
                | _ -> ()) *))
         done
       done;
+      let _ =
+        if !capture_count <> 0 then
+          !global_register_bank :=
+            add_info !capture_count !(!global_register_bank)
+      in
       (Some !board_after_captures, !capture_count)
 
 let rec place_moves (l : (int * int * space) list) (board : fboard) :

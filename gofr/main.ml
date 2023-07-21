@@ -1,9 +1,7 @@
 open Board.Board_definitions
 open Board.Board_printing
-
-(* open Register.Register_definitions
-   open Register.Register_printing
-   open Register.Operation_execution *)
+open Register.Register_definitions
+open Register.Register_printing
 open Board.Board_graphics
 
 let _ = print_newline ()
@@ -39,7 +37,10 @@ let _ = print_newline ()
        (fun x -> exec (get_reg (get_r x) x) x);
      ] *)
 
-let _ = init_gui blank_board
+let board = ref blank_board
+let rbank = ref fresh_bank
+let _ = list_rbank rbank
+let _ = init_gui !board
 let done_board = draw_loop blank_board
 (* let done_board =
    Option.get
@@ -55,6 +56,7 @@ let done_board = draw_loop blank_board
            blank_board)) *)
 
 let _ = print_board done_board
+let _ = print_bank !rbank
 
 (* let _ =
    if has_group_liberty [] 0 0 done_board White then

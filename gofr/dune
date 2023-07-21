@@ -1,4 +1,5 @@
 (executable
  (public_name gofr)
  (name main)
+ (modules main)
  (libraries board operation register))

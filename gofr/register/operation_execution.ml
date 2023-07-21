@@ -4,6 +4,25 @@ open Register_definitions
 let id_reg x = Reg (int_of_op Identity, 1, [ x ])
 let exec_identity bank = bank
 
+let add_info n (bank : reg_bank) =
+  let reg = get_reg (get_r bank) bank in
+  match reg with
+  | Empty -> (
+      let bank' = set_opcode n bank in
+      match get_reg (get_r bank') bank' with
+      | Empty -> bank'
+      | Reg (op_int, _, _) -> (
+          match op_of_int op_int with
+          | UserDefined x -> set_n_args x (set_opcode x bank')
+          | _ -> set_n_args (get_n_args (op_of_int op_int)) bank'))
+  | Reg (_, nargs, _) ->
+      if nargs = 0 then
+        match op_of_int n with
+        | Void -> bank
+        | UserDefined _ -> set_n_args n bank
+        | _ -> set_n_args (get_n_args (op_of_int n)) bank
+      else add_arg n bank
+
 let incorrect_n_args op expected_args n_args =
   failwith
     (Printf.sprintf "%s expected %d arguments but got %d instead"

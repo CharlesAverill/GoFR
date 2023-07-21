@@ -2,4 +2,4 @@
  (name board)
  (public_name gofr.board)
  (modules board_printing board_definitions board_graphics)
- (libraries graphics textures))
+ (libraries graphics textures gofr.register))

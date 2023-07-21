@@ -66,8 +66,3 @@ let add_arg n (bank : reg_bank) =
     | Empty -> (-1, 0, [])
   in
   replace_reg_at_idx (get_r bank) (Reg (op, n_args, args @ [ n ])) bank
-
-(* This function assumes that the register at R has the correct number of arguments*)
-(* let exec (reg : register) (bank : reg_bank) = match reg with
-   | Empty -> bank
-   | Reg (opcode, _, args) -> *)

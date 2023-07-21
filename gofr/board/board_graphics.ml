@@ -150,7 +150,7 @@ let redraw_board newboard =
         done
       done
 
-let init_gui game_board =
+let init_gui (game_board : fboard) =
   open_graph (Printf.sprintf " %dx%d" expanded_xdim ydim);
   set_window_title "GoFR Interface";
 
@@ -181,10 +181,6 @@ let init_gui game_board =
 
 let place_and_render screen_x screen_y sprite_to_place board : fboard option =
   let boardx, boardy = screen_coords_to_board_coords screen_x screen_y in
-  let _ =
-    Printf.printf "Placing at (%d, %d) (%d, %d)\n" boardx boardy screen_x
-      screen_y
-  in
   match
     place boardx boardy
       (if sprite_to_place == black_piece_40px then Black else White)

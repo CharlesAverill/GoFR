@@ -2,12 +2,12 @@ type opcode = Identity | Increment | Move | UserDefined of int | Void
 type opinfo = opcode * int * string
 
 let op_of_int x =
-  if x < 0 then Void
+  if x <= 0 then Void
   else
     match x with
-    | 0 -> Identity
-    | 1 -> Increment
-    | 2 -> Move
+    | 1 -> Identity
+    | 2 -> Increment
+    | 3 -> Move
     | x -> UserDefined x
 
 let int_of_op x =
