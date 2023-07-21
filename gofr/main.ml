@@ -39,6 +39,24 @@ let _ = print_newline ()
        (fun x -> exec (get_reg (get_r x) x) x);
      ] *)
 
-let _ = init_gui ()
+let _ = init_gui blank_board
 let done_board = draw_loop blank_board
+(* let done_board =
+   Option.get
+     (fst
+        (place_moves
+           [
+             (1, 1, Black);
+             (0, 0, White);
+             (0, 1, Black);
+             (1, 0, White);
+             (2, 0, Black);
+           ]
+           blank_board)) *)
+
 let _ = print_board done_board
+
+(* let _ =
+   if has_group_liberty [] 0 0 done_board White then
+     print_endline "White has liberty"
+   else print_endline "White should be captured" *)
