@@ -7,13 +7,14 @@ let print_reg reg tail rindicator rnumber =
     | Reg (op, _, _) -> string_of_int op
   in
   let regstr =
+    Printf.sprintf "| R%d " rnumber
+    ^
     match reg with
     | Empty -> Printf.sprintf "| %s |" (single_reg_rep reg)
     | Reg (op, n, rlist) ->
         let opstr = string_of_opint op in
         let liststr = String.concat ", " (List.map string_of_int rlist) in
-        (if rnumber <> -1 then Printf.sprintf "| R%d " rnumber else "")
-        ^ Printf.sprintf "| %s | N=%d |" opstr n
+        Printf.sprintf "| %s | N=%d |" opstr n
         ^ if rlist = [] then "" else Printf.sprintf " %s |" liststr
   in
   let border = String.make (String.length regstr) '-' ^ "\n" in
@@ -25,16 +26,17 @@ let print_reg reg tail rindicator rnumber =
 
 let print_bank (bank : reg_bank) : unit =
   match bank with
-  | r, reglist ->
-      let rec iter_regs x = function
-        | [] -> ()
-        | h :: t ->
-            (match h with idx, reg -> print_reg reg (t = []) (idx = r) x);
-            iter_regs (x + 1) t
+  | r, m, regmap ->
+      let rec iter_regs idx =
+        if idx > m then ()
+        else (
+          print_reg (regmap idx) (idx = m) (idx = r) idx;
+          iter_regs (idx + 1))
       in
-      iter_regs 0 reglist
+      iter_regs 1
 
-let print_flowchart (og_bank : reg_bank) (ops : (reg_bank -> reg_bank) list) =
+let print_flowchart interactive (og_bank : reg_bank)
+    (ops : (reg_bank -> reg_bank) list) =
   let _ =
     print_endline "Initial bank:";
     print_bank og_bank
@@ -43,8 +45,9 @@ let print_flowchart (og_bank : reg_bank) (ops : (reg_bank -> reg_bank) list) =
     match o with
     | [] -> ()
     | h :: t ->
-        let new_bank = h b in
+        let _ = if interactive then read_line () else "" in
         let _ = print_endline (Printf.sprintf "Step %d" n) in
+        let new_bank = h b in
         let _ = print_bank new_bank in
         fc_recur new_bank t (n + 1)
   in

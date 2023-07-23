@@ -43,6 +43,32 @@ These Go-inspired rules add a unique aspect to GoFR's execution and provide a ga
 
 The above description provides a high-level overview of GoFR's semantics based on the game of Go. More detailed information about the language's syntax, built-in functions, and additional features will be released over time as the language is developed.
 
+### Instruction Reference 
+
+<details>
+    <summary> Expand Reference Table</summary>
+
+| n | Name | N_Args | Description |
+|---|---|---|---|
+| 1 | Identity | 1 | A special function for many reasons: it does not get executed, and its argument is a constant value rather than a pointer. If a data load is executed in Go while `R` points to an Identity instruction, it will be overwritten with the new value |
+| 2 | Increment | 1 | Increments the value pointed at by its argument |
+| 3 | Decrement | 1 | Decrements the value pointed at by its argument |
+| 4 | Move | 2 | Copy the contents of the register at Arg1 to the register at Arg2 |
+| 5 | JumpAndExec | 1 | [See description below](#jumpandexec) |
+| 6 | Break | 1 | Breaks JumpAndExec loop |
+
+#### JumpAndExec
+
+The JumpAndExec function follows the procedure below:
+
+1. Set `R` to the value of `R - Arg1`. 
+2. Supply the argument `0` to the instruction at `R`. This may or may not cause the instruction to execute depending on its requirements
+3. Increment `R`, goto step 2
+
+</details>
+
+### Currying
+
 ### Assembly Example
 
 The following GoFR assembly (the internal translation of Go moves) loads a 

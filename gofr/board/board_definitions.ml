@@ -75,15 +75,15 @@ let rec place x y (value : space) (board : fboard) : fboard option * int =
   else
     let rec clear_neighbors (x, y) board friendly_color : fboard * int =
       if not (is_within_bounds x y board) then (board, 0)
-      else if (get_board board) (x, y) = friendly_color then (
+      else if (get_board board) (x, y) = friendly_color then
         let new_board = Option.get (fst (place x y Nil board)) in
         let neighbors = [ (x - 1, y); (x + 1, y); (x, y - 1); (x, y + 1) ] in
-        Printf.printf "Capturing (%d, %d)\n" x y;
+        (* Printf.printf "Capturing (%d, %d)\n" x y; *)
         List.fold_left
           (fun (acc : fboard * int) neighbor ->
             match clear_neighbors neighbor (fst acc) friendly_color with
             | new_board', num_captures -> (new_board', num_captures + snd acc))
-          (new_board, 1) neighbors)
+          (new_board, 1) neighbors
       else (board, 0)
     in
     let new_board (row, col) =

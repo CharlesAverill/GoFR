@@ -2,4 +2,5 @@
  (public_name gofr)
  (name main)
  (modules main)
- (libraries board operation register))
+ (libraries board register operation)
+ (modes byte exe))

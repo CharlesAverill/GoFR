@@ -25,3 +25,6 @@ fmt:
 
 run: build fmt
 	dune exec gofr
+
+debug: build fmt
+	ocamldebug _build/default/gofr/main.bc

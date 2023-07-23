@@ -1,4 +1,13 @@
-type opcode = Identity | Increment | Move | UserDefined of int | Void
+type opcode =
+  | Identity
+  | Jump
+  | Move
+  | Load
+  | Increment
+  | Decrement
+  | UserDefined of int
+  | Void
+
 type opinfo = opcode * int * string
 
 let op_of_int x =
@@ -6,8 +15,11 @@ let op_of_int x =
   else
     match x with
     | 1 -> Identity
-    | 2 -> Increment
+    | 2 -> Jump
     | 3 -> Move
+    | 4 -> Load
+    | 5 -> Increment
+    | 6 -> Decrement
     | x -> UserDefined x
 
 let int_of_op x =
@@ -17,8 +29,11 @@ let int_of_op x =
 let operations_info : opinfo list =
   [
     (Identity, 1, "Identity");
+    (Jump, 1, "Jump");
+    (Move, 3, "Move");
+    (Load, 2, "Load");
     (Increment, 1, "Increment");
-    (Move, 2, "Move");
+    (Decrement, 1, "Decrement");
     (UserDefined 0, 0, "UserDefined");
     (Void, 0, "Void");
   ]

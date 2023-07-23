@@ -1,6 +1,7 @@
 open Graphics
 open Textures
 open Board_definitions
+open Register.Register_definitions
 
 let xdim, ydim = (720, 720)
 let expanded_xdim = int_of_float (Float.mul (float_of_int xdim) 1.5)
@@ -150,7 +151,7 @@ let redraw_board newboard =
         done
       done
 
-let init_gui (game_board : fboard) =
+let init_gui (game_board : fboard) (_ : reg_bank) =
   open_graph (Printf.sprintf " %dx%d" expanded_xdim ydim);
   set_window_title "GoFR Interface";
 
@@ -188,6 +189,9 @@ let place_and_render screen_x screen_y sprite_to_place board : fboard option =
   with
   | None, _ -> None
   | Some newboard, capture_count ->
+      print_endline
+        (Printf.sprintf "\t(%d, %d, %s);" boardx boardy
+           (if sprite_to_place == black_piece_40px then "Black" else "White"));
       if capture_count <> 0 then
         let _ = redraw_board newboard in
         Some newboard
@@ -196,6 +200,7 @@ let place_and_render screen_x screen_y sprite_to_place board : fboard option =
         Some newboard)
 
 let draw_loop (board : fboard) : fboard =
+  let _ = Printf.printf "[\n" in
   let xcursor_offset, ycursor_offset = (0, 0) in
   let counter = ref 0 in
   let rec recur subboard : fboard =
@@ -236,6 +241,8 @@ let draw_loop (board : fboard) : fboard =
         else ()
       in
       recur !new_board_ref
-    with Exit -> !new_board_ref
+    with Exit ->
+      Printf.printf "]\n";
+      !new_board_ref
   in
   recur board
