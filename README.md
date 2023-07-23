@@ -18,15 +18,15 @@ GoFR incorporates elements from the traditional East Asian board game Go to defi
 ```
 - The language supports an infinite number of registers, each identified by a unique integer. At any given point during execution, exactly one register is 'targeted' by the register pointer `R`, which determines what register will be modified by an action on the Go field.
 ```
---------------------------
-| R0 | Increment | 1 | 1 | <- R
---------------------------
+----------------------
+| R0 | Increment | 1 | <- R
+----------------------
 | R1 | Identity | 3 |
 ---------------------
 ```
 - **Functions** in GoFR are operations that take a finite and well-defined number of arguments. Builtin functions like `Identity`, `Increment`, `Multiply`, etc. have specific opcodes, and any user-defined functions will have a larger, runtime-specified opcode. 
 - Function arguments are pointers to other registers, **except** in the case of `Identity`, in which the single argument is a literal
-- When a function is executed, its output is stored in the register that contained the function, with the new opcode being the `Identity` function and the singular argument being the result. Only values in `Identity` registers may be used in computations
+- When a the final expected argument is loaded into a function's register, **if the register is pointed to by `R`** it will automatically **execute** per the documentation below
 - User-defined functions must [curry](https://en.wikipedia.org/wiki/Currying) their arguments to builtin functions to develop higher-level control
 
 ### Game of Go Rules
@@ -51,23 +51,20 @@ The above description provides a high-level overview of GoFR's semantics based o
 | n | Name | N_Args | Description |
 |---|---|---|---|
 | 1 | Identity | 1 | A special function for many reasons: it does not get executed, and its argument is a constant value rather than a pointer. If a data load is executed in Go while `R` points to an Identity instruction, it will be overwritten with the new value |
-| 2 | Increment | 1 | Increments the value pointed at by its argument |
-| 3 | Decrement | 1 | Decrements the value pointed at by its argument |
-| 4 | Move | 2 | Copy the contents of the register at Arg1 to the register at Arg2 |
+| 2 | Jump | 1 | Jumps to the register pointed at by its argument |
+| 3 | Move | 3 | Copies the contents of all registers in the range `[Arg1:Arg2]` to `Arg3`. E.g. if `Move 1 5 6` is executed, registers `R1`, `R2`, `R3`, `R4`, and `R5` will be copied to positions `R6`, `R7`, `R8`, `R9`, and `R10` - maintaining their order |
+| 4 | Load | 2 | Loads the data from an `Identity` pointed at by `Arg1` into the next available slot at register `Arg2`, acting like a Go capture. `Load` allows for preparing instructions for `JumpAndExec` as it does not execute fully-loaded functions automatically |
+| 5 | Increment | 1 | Increments the value pointed at by its argument (will soon be deprecated in favor of Add) |
+| 6 | Decrement | 1 | Decrements the value pointed at by its argument (will soon be deprecated in favor of Subtract) |
+<!-- | 4 | Move | 2 | Copy the contents of the register at Arg1 to the register at Arg2 |
 | 5 | JumpAndExec | 1 | [See description below](#jumpandexec) |
-| 6 | Break | 1 | Breaks JumpAndExec loop |
+| 6 | Break | 1 | Breaks JumpAndExec loop | -->
 
 #### JumpAndExec
 
-The JumpAndExec function follows the procedure below:
-
-1. Set `R` to the value of `R - Arg1`. 
-2. Supply the argument `0` to the instruction at `R`. This may or may not cause the instruction to execute depending on its requirements
-3. Increment `R`, goto step 2
+To maintain Turing-Completeness, `JumpAndExec` and `Break` functions are planned. `JumpAndExec` will jump to register `Arg1` and sequentially execute registers until it reaches a `Break` instruction.
 
 </details>
-
-### Currying
 
 ### Assembly Example
 
