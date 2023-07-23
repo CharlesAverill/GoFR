@@ -75,7 +75,8 @@ and exec (reg : register) (bank : reg_bank) : reg_bank =
                 | Empty -> failwith "Tried to increment an Empty register"
                 | Reg (_, _, args') -> List.hd args'
               in
-              replace_reg_at_idx r (id_reg (new_val + 1)) bank
+              replace_reg_at_idx r Empty
+                (replace_reg_at_idx reg_pointer (id_reg (new_val + 1)) bank)
           | _ -> incorrect_n_args Increment expected_args (List.length args))
       | Decrement -> (
           match args with
@@ -85,7 +86,8 @@ and exec (reg : register) (bank : reg_bank) : reg_bank =
                 | Empty -> failwith "Tried to decrement an Empty register"
                 | Reg (_, _, args') -> List.hd args'
               in
-              replace_reg_at_idx r (id_reg (new_val - 1)) bank
+              replace_reg_at_idx r Empty
+                (replace_reg_at_idx reg_pointer (id_reg (new_val - 1)) bank)
           | _ -> incorrect_n_args Increment expected_args (List.length args))
       | Move -> (
           match args with

@@ -107,10 +107,22 @@ let tmachine_test () =
       add_info_op Identity;
       add_info 5;
       incr_r;
+      (* Load LEFT *)
       add_info_op Move;
       add_info 15;
       add_info 15;
       add_info 3;
+      (* Execute LEFT *)
+      add_info_op Jump;
+      add_info 3;
+      (* Load RIGHT *)
+      add_info_op Jump;
+      add_info 16;
+      add_info_op Move;
+      add_info 14;
+      add_info 14;
+      add_info 3;
+      (* Execute RIGHT *)
       add_info_op Jump;
       add_info 3;
     ]
