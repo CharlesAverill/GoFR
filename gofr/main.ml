@@ -8,37 +8,35 @@ open Board.Board_graphics
 let _ = print_newline ()
 
 let _self_replicating_test () =
-  print_flowchart true fresh_bank
+  print_flowchart false fresh_bank
     [
-      (* R1: Identity 5*)
-      add_info 1;
+      (* R1 : DATA *)
+      add_info_op Identity;
       add_info 5;
-      (* R2: Identity 10 *)
+      (* R2 : PROGRAM *)
       incr_r;
-      add_info 1;
-      add_info 10;
-      (* R3 : Move 1, 3 (curry) *)
+      add_info_op Increment;
       incr_r;
-      add_info 3;
-      add_info 1;
-      add_info 3;
-      (* R4 : Identity 5 *)
-      incr_r;
-      add_info 1;
-      add_info 5;
-      (* R5 : Load 4 3*)
-      incr_r;
-      add_info 4;
-      add_info 4;
-      add_info 3;
-      (* R4 : Jump*)
-      decr_r;
-      add_info 2;
-      (* Decrement and auto-exec R3 Move *)
-      decr_r;
-      (* R4 : Jump 8*)
-      incr_r;
+      (* R3 : REPLICATOR *)
+      add_info_op Move;
+      add_info 7;
       add_info 8;
+      (* R4-5 : Temp space for setting up program *)
+      incr_r;
+      add_info_op Identity;
+      add_info 1;
+      incr_r;
+      add_info_op Load;
+      add_info 3;
+      add_info 2;
+      decr_r;
+      add_info_op Identity;
+      add_info 2;
+      incr_r;
+      add_info_op Load;
+      add_info 4;
+      add_info 3;
+      (* R6 : Copied Program *)
     ]
 
 let _do_gui_test () =
@@ -66,13 +64,13 @@ let _do_auto_boardtest () =
   in
   print_board done_board
 
-let tmachine_test () =
+let _tmachine_test () =
   print_flowchart false fresh_bank
     [
-      (* R0 : TM HEAD *)
+      (* R1 : TM HEAD *)
       add_info_op Identity;
       add_info 0;
-      (* R1 : CONSTANT 1 *)
+      (* R2 : CONSTANT 1 *)
       incr_r;
       add_info_op Identity;
       add_info 1;
@@ -107,6 +105,8 @@ let tmachine_test () =
       add_info_op Identity;
       add_info 5;
       incr_r;
+      (* R17 : Duplication Routine *)
+      (* TODO *)
       (* Load LEFT *)
       add_info_op Move;
       add_info 15;
@@ -127,4 +127,4 @@ let tmachine_test () =
       add_info 3;
     ]
 
-let _ = tmachine_test ()
+let _ = _self_replicating_test ()

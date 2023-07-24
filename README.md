@@ -2,7 +2,7 @@
 
 ![GoFR Logo](media/gofr_logo.png)
 
-GoFR ("Go [language] For Real", pronounced "gopher") is a register-based programming language whose semantics are based on moves made in the board game [Go](https://en.wikipedia.org/wiki/Go_(game)).
+GoFR ("Go [language] For Real", pronounced "gopher") is an entropic register-based programming language whose semantics are based on moves made in the board game [Go](https://en.wikipedia.org/wiki/Go_(game)).
 
 ## Semantics
 
@@ -27,6 +27,7 @@ GoFR incorporates elements from the traditional East Asian board game Go to defi
 - **Functions** in GoFR are operations that take a finite and well-defined number of arguments. Builtin functions like `Identity`, `Increment`, `Multiply`, etc. have specific opcodes, and any user-defined functions will have a larger, runtime-specified opcode. 
 - Function arguments are pointers to other registers, **except** in the case of `Identity`, in which the single argument is a literal
 - When a the final expected argument is loaded into a function's register, **if the register is pointed to by `R`** it will automatically **execute** per the documentation below
+- The language is called **entropic** because each operation (excluding `Identity`) must destroy some amount of information by collapsing to another state, resulting in a less-distinguishable system over time. GoFR's Turing-Completeness relies heavily on the negentropic `Move` instruction (which can create more information than it destroys) and the isentropic `Load` instruction (which can create exactly as much information as it destroys).
 - User-defined functions must [curry](https://en.wikipedia.org/wiki/Currying) their arguments to builtin functions to develop higher-level control
 
 ### Game of Go Rules
@@ -48,14 +49,14 @@ The above description provides a high-level overview of GoFR's semantics based o
 <details>
     <summary> Expand Reference Table</summary>
 
-| n | Name | N_Args | Description |
-|---|---|---|---|
-| 1 | Identity | 1 | A special function for many reasons: it does not get executed, and its argument is a constant value rather than a pointer. If a data load is executed in Go while `R` points to an Identity instruction, it will be overwritten with the new value |
-| 2 | Jump | 1 | Jumps to the register pointed at by its argument |
-| 3 | Move | 3 | Copies the contents of all registers in the range `[Arg1:Arg2]` to `Arg3`. E.g. if `Move 1 5 6` is executed, registers `R1`, `R2`, `R3`, `R4`, and `R5` will be copied to positions `R6`, `R7`, `R8`, `R9`, and `R10` - maintaining their order |
-| 4 | Load | 2 | Loads the data from an `Identity` pointed at by `Arg1` into the next available slot at register `Arg2`, acting like a Go capture. `Load` allows for preparing instructions for `JumpAndExec` as it does not execute fully-loaded functions automatically |
-| 5 | Increment | 1 | Increments the value pointed at by its argument (will soon be deprecated in favor of Add) |
-| 6 | Decrement | 1 | Decrements the value pointed at by its argument (will soon be deprecated in favor of Subtract) |
+| n | Name | N_Args | Description | Collapsed State |
+|---|---|---|---|---|
+| 1 | `Identity` | 1 | A special function for many reasons: it does not get executed, and its argument is a constant value rather than a pointer. If a data load is executed in Go while `R` points to an Identity instruction, it will be overwritten with the new value | `Identity` is already in its collapsed state |
+| 2 | `Jump` | 1 | Jumps to the register pointed at by its argument | The `Empty` register |
+| 3 | `Move` | 3 | Copies the contents of all registers in the range `[Arg1:Arg2]` to `Arg3`. E.g. if `Move 1 5 6` is executed, registers `R1`, `R2`, `R3`, `R4`, and `R5` will be copied to positions `R6`, `R7`, `R8`, `R9`, and `R10` - maintaining their order | `Identity (Arg2 - Arg1 + 1)` |
+| 4 | `Load` | 2 | Loads the data from an `Identity` pointed at by `Arg1` into the next available slot at register `Arg2`, acting like a Go capture. `Load` allows for preparing instructions for `JumpAndExec` as it does not execute fully-loaded functions automatically | `Identity (data @ Arg1)` |
+| 5 | `Increment` | 1 | Increments the value pointed at by its argument (will soon be deprecated in favor of Add) | The `Empty` register |
+| 6 | `Decrement` | 1 | Decrements the value pointed at by its argument (will soon be deprecated in favor of Subtract) | The `Empty` register |
 <!-- | 4 | Move | 2 | Copy the contents of the register at Arg1 to the register at Arg2 |
 | 5 | JumpAndExec | 1 | [See description below](#jumpandexec) |
 | 6 | Break | 1 | Breaks JumpAndExec loop | -->
@@ -104,19 +105,19 @@ which is 2. This code example is also represented by both of these games of Go:
     | Empty | <- R
     ---------
     ```
-1. [Move 7] Load 'Identity' opcode (N_Args is filled automatically for builtins)
+1. Load 'Identity' opcode (N_Args is filled automatically for builtins)
     ```
     -----------------------
     | R1 | Identity | N=1 | <- R
     -----------------------
     ```
-2. [Move 17] Load the constant '1' into the first argument of R1
+2. Load the constant '1' into the first argument of R1
     ```
     ---------------------------
     | R1 | Identity | N=1 | 1 | <- R
     ---------------------------
     ```
-3. [Move 19] Increment R
+3. Increment R
     ```
     ---------------------------
     | R1 | Identity | N=1 | 1 |
@@ -124,7 +125,7 @@ which is 2. This code example is also represented by both of these games of Go:
     | Empty | <- R
     ---------
     ```
-4. [Move 24] Load 'Increment' opcode
+4. Load 'Increment' opcode
     ```
     ---------------------------
     | R1 | Identity | N=1 | 0 |
@@ -132,7 +133,7 @@ which is 2. This code example is also represented by both of these games of Go:
     | R2 | Increment | N=1 | <- R
     ------------------------
     ```
-5. [Move 25] Load the register pointer '1' into the first argument of R2
+5. Load the register pointer '1' into the first argument of R2
     ```
     ---------------------------
     | R1 | Identity | N=1 | 1 |
