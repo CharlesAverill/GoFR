@@ -65,6 +65,10 @@ The above description provides a high-level overview of GoFR's semantics based o
 
 To maintain Turing-Completeness, `JumpAndExec` and `Break` functions are planned. `JumpAndExec` will jump to register `Arg1` and sequentially execute registers until it reaches a `Break` instruction.
 
+### Conditional Jumping
+
+To maintain Turing-Completeness, a `JumpNotZero` function is planned that will jump to register `Arg1` if register `Arg2` is an `Identity` register with a non-zero value.
+
 </details>
 
 ### Assembly Example
