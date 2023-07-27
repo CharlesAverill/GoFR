@@ -18,6 +18,10 @@ type reg_bank = int * int * reg_list
 
 let fresh_bank : reg_bank = (1, 1, fun _ -> Empty)
 let get_r : reg_bank -> int = function r, _, _ -> r
+
+let set_r x (bank : reg_bank) : reg_bank =
+  match bank with _, m, l -> (x, max x m, l)
+
 let get_max_reg : reg_bank -> int = function _, max, _ -> max
 let get_regmap : reg_bank -> reg_list = function _, _, regmap -> regmap
 

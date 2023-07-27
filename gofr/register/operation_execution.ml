@@ -21,7 +21,10 @@ let rec add_info_at_idx idx n bank added_from_load =
           match op_of_int n with
           | Void -> bank
           | UserDefined _ -> set_n_args idx n bank
-          | _ -> set_n_args idx (get_n_args (op_of_int n)) bank
+          | _ ->
+              add_info_at_idx idx n
+                (replace_reg_at_idx idx Empty bank)
+                added_from_load
         else if List.length args >= nargs then
           add_info_at_idx idx n
             (replace_reg_at_idx idx Empty bank)
@@ -32,24 +35,24 @@ let rec add_info_at_idx idx n bank added_from_load =
       match new_reg with
       | Reg (op, _, args) ->
           if List.length args = get_n_args (op_of_int op) && not added_from_load
-          then exec new_reg added_info_bank
+          then exec idx added_info_bank
           else added_info_bank
       | Empty -> added_info_bank)
 
-and exec_if_ready reg bank =
-  match reg with
+and exec_if_ready idx bank =
+  match get_reg idx bank with
   | Reg (op, _, args) ->
-      if List.length args = get_n_args (op_of_int op) then exec reg bank
+      if List.length args = get_n_args (op_of_int op) then exec idx bank
       else bank
   | Empty -> bank
 
-and exec (reg : register) (bank : reg_bank) : reg_bank =
+and exec (idx : int) (bank : reg_bank) : reg_bank =
   let incorrect_n_args op expected_args n_args =
     failwith
       (Printf.sprintf "%s expected %d arguments but got %d instead"
          (string_of_op op) expected_args n_args)
   in
-  let r = get_r bank in
+  let reg = (get_regmap bank) idx in
   match reg with
   | Empty -> bank
   | Reg (op, expected_args, args) -> (
@@ -60,73 +63,122 @@ and exec (reg : register) (bank : reg_bank) : reg_bank =
       | Identity -> exec_identity bank
       | Jump -> (
           match args with
-          | jump_dest :: [] ->
+          | [ jump_type; jump_dest'; jump_cond ] ->
+              let jump_dest =
+                if jump_type = jump_UNCOND then jump_dest'
+                else
+                  match get_reg jump_cond bank with
+                  | Reg (jump_cond_type, _, [ first_arg ]) ->
+                      if op_of_int jump_cond_type = Identity then
+                        if first_arg <= 0 then jump_dest' else idx
+                      else 0
+                  | _ -> failwith "Conditional jump failed"
+              in
               let new_bank =
-                (jump_dest, max (get_max_reg bank) jump_dest, get_regmap bank)
+                replace_reg_at_idx idx (id_reg jump_dest)
+                  (jump_dest, max (get_max_reg bank) jump_dest, get_regmap bank)
               in
-              replace_reg_at_idx r Empty
-                (exec_if_ready (get_reg (get_r new_bank) new_bank) new_bank)
+              let rec jump_recur jump_index jump_bank =
+                let _ = Printf.printf "%d %d\n" idx jump_index in
+                if jump_index > get_max_reg jump_bank then
+                  failwith "Runaway jump encountered"
+                else
+                  match get_reg jump_index jump_bank with
+                  | Reg (jump_op, _, _) ->
+                      if op_of_int jump_op = Break then jump_bank
+                      else
+                        jump_recur (jump_index + 1)
+                          (exec_if_ready jump_index jump_bank)
+                  | _ -> jump_recur (jump_index + 1) jump_bank
+              in
+              if jump_dest = idx then new_bank
+              else jump_recur jump_dest new_bank
           | _ -> incorrect_n_args Jump expected_args (List.length args))
-      | Increment -> (
+      | Arith -> (
           match args with
-          | reg_pointer :: [] ->
-              let new_val =
-                match get_reg reg_pointer bank with
-                | Empty -> failwith "Tried to increment an Empty register"
-                | Reg (_, _, args') -> List.hd args'
+          | [ arith_opcode; src1; src2; dest ] ->
+              let val1 =
+                match get_reg src1 bank with
+                | Reg (_, _, [ first_arg ]) -> first_arg
+                | _ -> failwith "Tried to do arithmetic on a faulty register"
               in
-              replace_reg_at_idx r Empty
-                (replace_reg_at_idx reg_pointer (id_reg (new_val + 1)) bank)
-          | _ -> incorrect_n_args Increment expected_args (List.length args))
-      | Decrement -> (
-          match args with
-          | reg_pointer :: [] ->
-              let new_val =
-                match get_reg reg_pointer bank with
-                | Empty -> failwith "Tried to decrement an Empty register"
-                | Reg (_, _, args') -> List.hd args'
+              let val2 =
+                match get_reg src2 bank with
+                | Reg (_, _, [ first_arg ]) -> first_arg
+                | _ -> failwith "Tried to do arithmetic on a faulty register"
               in
-              replace_reg_at_idx r Empty
-                (replace_reg_at_idx reg_pointer (id_reg (new_val - 1)) bank)
-          | _ -> incorrect_n_args Increment expected_args (List.length args))
+              let new_val =
+                if arith_opcode = arith_ADD then val1 + val2
+                else if arith_opcode = arith_SUB then val1 - val2
+                else if arith_opcode = arith_MUL then val1 * val2
+                else if arith_opcode = arith_DIV then val1 / val2
+                else 0
+              in
+              replace_reg_at_idx idx Empty
+                (replace_reg_at_idx dest (id_reg new_val) bank)
+          | _ -> incorrect_n_args Arith expected_args (List.length args))
       | Move -> (
           match args with
-          | [ srcBegin; srcEnd; dest ] ->
+          | [ arg_type; srcBegin'; srcLength; dest' ] ->
+              let srcBegin =
+                if arg_type = move_SET then srcBegin'
+                else if arg_type = move_OFFSET_POS then idx + srcBegin'
+                else if arg_type = move_OFFSET_DEST then idx
+                else 0
+              in
+              let dest =
+                if arg_type = move_SET then dest'
+                else if
+                  arg_type = move_OFFSET_POS || arg_type = move_OFFSET_DEST
+                then idx + dest'
+                else 0
+              in
               let rec set_loop idx bank_target =
-                if srcBegin + idx > srcEnd then bank_target
+                if srcBegin + idx >= srcBegin + srcLength then bank_target
                 else
                   set_loop (idx + 1)
                     (replace_reg_at_idx (dest + idx)
                        (get_reg (srcBegin + idx) bank)
                        bank_target)
               in
-              replace_reg_at_idx r
-                (id_reg (srcEnd - srcBegin + 1))
-                (set_loop 0 bank)
+              replace_reg_at_idx idx (id_reg srcLength) (set_loop 0 bank)
           | _ -> incorrect_n_args Move expected_args (List.length args))
       | Load -> (
           match args with
-          | [ src_reg; dest_reg ] ->
+          | [ arg_type; src_reg; dest_reg ] ->
               let src_data =
-                match get_reg src_reg bank with
+                match
+                  get_reg
+                    (if arg_type = load_SET then src_reg
+                     else if arg_type = load_OFFSET_POS then idx + src_reg
+                     else if arg_type = load_OFFSET_NEG then idx - src_reg
+                     else 0)
+                    bank
+                with
                 | Empty -> failwith "Tried to load from an Empty register"
                 | Reg (_, _, args') -> List.hd args'
               in
-              replace_reg_at_idx r (id_reg src_data)
-                (add_info_at_idx dest_reg src_data bank true)
+              replace_reg_at_idx idx (id_reg src_data)
+                (add_info_at_idx
+                   (if arg_type = load_SET then dest_reg
+                    else if arg_type = load_OFFSET_POS then idx + dest_reg
+                    else if arg_type = load_OFFSET_NEG then idx - dest_reg
+                    else 0)
+                   src_data bank true)
           | _ -> incorrect_n_args Load expected_args (List.length args))
       | _ -> bank)
 
 let incr_r : reg_bank -> reg_bank = function
   | r, m, l ->
       let new_bank = (r + 1, max m (r + 1), l) in
-      exec_if_ready (get_reg (get_r new_bank) new_bank) new_bank
+      exec_if_ready (get_r new_bank) new_bank
 
 let decr_r : reg_bank -> reg_bank = function
   | r, m, l ->
       let new_bank = (r - 1, m, l) in
-      exec_if_ready (get_reg (get_r new_bank) new_bank) new_bank
+      exec_if_ready (get_r new_bank) new_bank
 
-let exec_r bank = match bank with r, _, _ -> exec (get_reg r bank) bank
+let set_r x : reg_bank -> reg_bank = function _, m, l -> (x, m, l)
+let exec_r bank = match bank with r, _, _ -> exec r bank
 let add_info n bank = add_info_at_idx (get_r bank) n bank false
 let add_info_op op bank = add_info_at_idx (get_r bank) (int_of_op op) bank false

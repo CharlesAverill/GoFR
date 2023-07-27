@@ -3,40 +3,100 @@ open Board.Board_printing
 open Register.Register_definitions
 open Register.Register_printing
 open Register.Operation_execution
+open Operation.Operation_definitions
 open Board.Board_graphics
 
 let _ = print_newline ()
 
 let _self_replicating_test () =
+  let prog_size = 5 in
+  let prog_size_reg = 6 in
   print_flowchart false fresh_bank
     [
-      (* R1 : DATA *)
+      (* R1 - R2 : DATA *)
       add_info_op Identity;
-      add_info 5;
-      (* R2 : PROGRAM *)
+      add_info 1;
       incr_r;
-      add_info_op Increment;
+      add_info_op Identity;
+      add_info 10;
+      (* Program Termination *)
       incr_r;
-      (* R3 : REPLICATOR *)
+      add_info_op Break;
+      (* R4 : CONSTANT 1 *)
+      incr_r;
+      add_info_op Identity;
+      add_info 1;
+      (* SELF-REPLICATING PROGRAM *)
+      (* Self-Replicator *)
+      incr_r;
       add_info_op Move;
-      add_info 7;
-      add_info 8;
-      (* R4-5 : Temp space for setting up program *)
+      add_info move_OFFSET_DEST;
+      add_info 1;
+      add_info prog_size_reg;
+      (* R6 : Program Size *)
+      incr_r;
+      add_info_op Identity;
+      add_info prog_size;
+      incr_r;
+      add_info_op Load;
+      add_info load_OFFSET_NEG;
+      add_info 1;
+      add_info 2;
+      (* Program *)
+      add_info_op Arith;
+      add_info arith_ADD;
+      add_info 1;
+      add_info 4;
+      incr_r;
+      add_info_op Arith;
+      add_info arith_SUB;
+      add_info 2;
+      add_info 4;
       incr_r;
       add_info_op Identity;
       add_info 1;
       incr_r;
       add_info_op Load;
+      add_info load_OFFSET_NEG;
+      add_info 1;
       add_info 3;
-      add_info 2;
       decr_r;
       add_info_op Identity;
       add_info 2;
       incr_r;
       add_info_op Load;
-      add_info 4;
-      add_info 3;
-      (* R6 : Copied Program *)
+      add_info load_OFFSET_NEG;
+      add_info 1;
+      add_info 2;
+      decr_r;
+      add_info_op Jump;
+      add_info jump_Z;
+      add_info 2;
+      incr_r;
+      incr_r;
+      add_info_op Load;
+      add_info load_OFFSET_NEG;
+      add_info 1;
+      add_info 2;
+      add_info_op Jump;
+      add_info jump_UNCOND;
+      add_info 5;
+      add_info 1;
+    ]
+
+let _jump_test () =
+  print_flowchart false fresh_bank
+    [
+      incr_r;
+      incr_r;
+      add_info_op Break;
+      incr_r;
+      incr_r;
+      incr_r;
+      add_info_op Jump;
+      add_info jump_UNCOND;
+      add_info 1;
+      add_info 1;
     ]
 
 let _do_gui_test () =
@@ -89,17 +149,21 @@ let _tmachine_test () =
       incr_r;
       (* TM BUILTINS *)
       (* R14 : LEFT *)
-      add_info_op Decrement;
+      add_info_op Arith;
+      add_info 2;
+      add_info 1;
+      add_info 2;
       incr_r;
       add_info_op Load;
-      add_info 2;
-      add_info 14;
+      add_info 1;
       (* R15 : RIGHT*)
-      add_info_op Increment;
+      add_info_op Arith;
+      add_info 1;
+      add_info 1;
+      add_info 2;
       incr_r;
       add_info_op Load;
-      add_info 2;
-      add_info 15;
+      add_info 1;
       (* PROGRAM MEMORY *)
       (* R16 : Program Size *)
       add_info_op Identity;
