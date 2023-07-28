@@ -1,10 +1,22 @@
 open Operation.Operation_definitions
 open Register_definitions
+open Globals
+(* open Register_printing *)
 
 let id_reg x = Reg (int_of_op Identity, 1, [ x ])
 let exec_identity bank = bank
 
+let write_to_file filename content =
+  let out_channel = open_out filename in
+  output_string out_channel content;
+  close_out out_channel
+
 let rec add_info_at_idx idx n bank added_from_load =
+  let _ =
+    if _PRINT_CAPTURE_NUMS then
+      _CAPTURE_NUMS := !_CAPTURE_NUMS @ [ string_of_int n ]
+    else ()
+  in
   let reg = get_reg idx bank in
   match reg with
   | Empty -> (
@@ -46,6 +58,9 @@ and exec_if_ready idx bank =
       else bank
   | Empty -> bank
 
+(* Super jank here... this is so that recursive Jump calls don't go into an infinite loop *)
+and found_break = ref false
+
 and exec (idx : int) (bank : reg_bank) : reg_bank =
   let incorrect_n_args op expected_args n_args =
     failwith
@@ -78,21 +93,31 @@ and exec (idx : int) (bank : reg_bank) : reg_bank =
                 replace_reg_at_idx idx (id_reg jump_dest)
                   (jump_dest, max (get_max_reg bank) jump_dest, get_regmap bank)
               in
-              let rec jump_recur jump_index jump_bank =
-                let _ = Printf.printf "%d %d\n" idx jump_index in
-                if jump_index > get_max_reg jump_bank then
-                  failwith "Runaway jump encountered"
-                else
-                  match get_reg jump_index jump_bank with
-                  | Reg (jump_op, _, _) ->
-                      if op_of_int jump_op = Break then jump_bank
-                      else
-                        jump_recur (jump_index + 1)
-                          (exec_if_ready jump_index jump_bank)
-                  | _ -> jump_recur (jump_index + 1) jump_bank
-              in
               if jump_dest = idx then new_bank
-              else jump_recur jump_dest new_bank
+              else
+                let jump_index = ref jump_dest and jump_bank = ref new_bank in
+                let bank_max = ref (get_max_reg !jump_bank) in
+                let _ =
+                  while !jump_index <= !bank_max && not !found_break do
+                    match get_reg !jump_index !jump_bank with
+                    | Reg (jump_op, _, _) ->
+                        if op_of_int jump_op = Break then
+                          (* Update the jump_dest and new_bank refs to stop the loop *)
+                          found_break := true
+                        else (
+                          (* Perform the same operations as the recursive call *)
+                          (* print_reg
+                             (get_reg !jump_index !jump_bank)
+                             true false !jump_index; *)
+                          jump_bank :=
+                            exec_if_ready !jump_index
+                              (set_r !jump_index !jump_bank);
+                          bank_max := get_max_reg !jump_bank;
+                          jump_index := !jump_index + 1)
+                    | _ -> jump_index := !jump_index + 1
+                  done
+                in
+                !jump_bank
           | _ -> incorrect_n_args Jump expected_args (List.length args))
       | Arith -> (
           match args with
@@ -170,15 +195,17 @@ and exec (idx : int) (bank : reg_bank) : reg_bank =
 
 let incr_r : reg_bank -> reg_bank = function
   | r, m, l ->
+      let _ = _CAPTURE_NUMS := !_CAPTURE_NUMS @ [ "Bko" ] in
       let new_bank = (r + 1, max m (r + 1), l) in
       exec_if_ready (get_r new_bank) new_bank
 
 let decr_r : reg_bank -> reg_bank = function
   | r, m, l ->
+      let _ = _CAPTURE_NUMS := !_CAPTURE_NUMS @ [ "Wko" ] in
       let new_bank = (r - 1, m, l) in
       exec_if_ready (get_r new_bank) new_bank
 
 let set_r x : reg_bank -> reg_bank = function _, m, l -> (x, m, l)
-let exec_r bank = match bank with r, _, _ -> exec r bank
+let exec_r bank = match bank with r, _, _ -> exec_if_ready r bank
 let add_info n bank = add_info_at_idx (get_r bank) n bank false
 let add_info_op op bank = add_info_at_idx (get_r bank) (int_of_op op) bank false

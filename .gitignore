@@ -10,3 +10,4 @@
 *.cmxa
 _build
 gofr.opam
+capture_nums.txt

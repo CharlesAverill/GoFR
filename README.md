@@ -153,3 +153,9 @@ which is 2. This code example is also represented by both of these games of Go:
     | R2 | Identity | N=1 | 2 | <- R
     ---------------------------
     ```
+
+### Recursive Assembly Demo
+
+This example computes `5 + 3` recursively, storing the result in `R1`. The IR can be found in [main.ml:_self_replicating_test](gofr/main.ml)
+
+![recursive assembly gif](media/demos/add2.gif)

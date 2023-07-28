@@ -35,20 +35,29 @@ let print_bank (bank : reg_bank) : unit =
       in
       iter_regs 1
 
-let print_flowchart interactive (og_bank : reg_bank)
+let print_flowchart_inner interactive og_bank print_banks
     (ops : (reg_bank -> reg_bank) list) =
   let _ =
-    print_endline "Initial bank:";
-    print_bank og_bank
+    if print_banks then (
+      print_endline "Initial bank:";
+      print_bank og_bank)
   in
   let rec fc_recur b o n =
     match o with
     | [] -> ()
     | h :: t ->
         let _ = if interactive then read_line () else "" in
-        let _ = print_endline (Printf.sprintf "Step %d" n) in
+        let _ =
+          if print_banks then print_endline (Printf.sprintf "Step %d" n)
+        in
         let new_bank = h b in
-        let _ = print_bank new_bank in
+        let _ = if print_banks then print_bank new_bank in
         fc_recur new_bank t (n + 1)
   in
   fc_recur og_bank ops 1
+
+let print_flowchart interactive og_bank =
+  print_flowchart_inner interactive og_bank true
+
+let run_flowchart_quiet interactive og_bank =
+  print_flowchart_inner interactive og_bank false

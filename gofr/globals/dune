@@ -1,0 +1,4 @@
+(library
+ (name globals)
+ (public_name gofr.globals)
+ (modules globals))

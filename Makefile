@@ -24,6 +24,7 @@ fmt:
 	dune promote
 
 run: build fmt
+	rm -f capture_nums.txt
 	dune exec gofr
 
 debug: build fmt

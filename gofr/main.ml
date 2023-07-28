@@ -5,20 +5,23 @@ open Register.Register_printing
 open Register.Operation_execution
 open Operation.Operation_definitions
 open Board.Board_graphics
+open Globals
 
 let _ = print_newline ()
 
 let _self_replicating_test () =
-  let prog_size = 5 in
+  let prog_size = 4 in
   let prog_size_reg = 6 in
-  print_flowchart false fresh_bank
+  let to_add_a = 3 in
+  let to_add_b = 5 in
+  run_flowchart_quiet false fresh_bank
     [
       (* R1 - R2 : DATA *)
       add_info_op Identity;
-      add_info 1;
+      add_info to_add_a;
       incr_r;
       add_info_op Identity;
-      add_info 10;
+      add_info to_add_b;
       (* Program Termination *)
       incr_r;
       add_info_op Break;
@@ -43,6 +46,7 @@ let _self_replicating_test () =
       add_info 1;
       add_info 2;
       (* Program *)
+      decr_r;
       add_info_op Arith;
       add_info arith_ADD;
       add_info 1;
@@ -69,6 +73,7 @@ let _self_replicating_test () =
       add_info 1;
       add_info 2;
       decr_r;
+      (* Break Condition *)
       add_info_op Jump;
       add_info jump_Z;
       add_info 2;
@@ -192,3 +197,4 @@ let _tmachine_test () =
     ]
 
 let _ = _self_replicating_test ()
+let _ = write_to_file _CAPTURE_NUMS_FN (String.concat "\n" !_CAPTURE_NUMS)
